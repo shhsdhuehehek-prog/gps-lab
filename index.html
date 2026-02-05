@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Lab: Precision GPS Demo</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f4; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: inline-block; }
+        button { background-color: #ff4b2b; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #ff416c; }
+        #status { margin-top: 20px; font-weight: bold; color: #333; }
+        #mapLink { display: none; margin-top: 20px; color: blue; text-decoration: underline; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h2>📍 Precision Tracker Lab</h2>
+        <p>This demo shows how a website requests your <b>Real GPS</b> sensors.</p>
+        
+        <button onclick="captureLocation()">Verify My Real Location</button>
+
+        <p id="status">Status: Waiting for user action...</p>
+        <div id="result"></div>
+        <a id="mapLink" target="_blank">View Precise House Location on Google Maps</a>
+    </div>
+
+    <script>
+        function captureLocation() {
+            var status = document.getElementById("status");
+            var resultDiv = document.getElementById("result");
+            var mapLink = document.getElementById("mapLink");
+
+            status.innerHTML = "Requesting permission from browser...";
+
+            // Check if browser supports Geolocation
+            if (navigator.geolocation) {
+                // enableHighAccuracy: true forces the phone to use GPS satellites, not just IP
+                navigator.geolocation.getCurrentPosition(success, error, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            } else {
+                status.innerHTML = "Error: Your browser is blocking this tracking demo.";
+            }
+
+            function success(position) {
+                var lat = position.coords.latitude;
+                var lon = position.coords.longitude;
+                var acc = position.coords.accuracy;
+
+                status.innerHTML = "✅ GPS TARGET ACQUIRED!";
+                resultDiv.innerHTML = `
+                    <p><b>Latitude:</b> ${lat}</p>
+                    <p><b>Longitude:</b> ${lon}</p>
+                    <p><b>Accuracy:</b> within ${acc.toFixed(1)} meters</p>
+                `;
+
+                // Create the secret Google Maps link
+                var mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+                mapLink.href = mapsUrl;
+                mapLink.style.display = "block";
+                mapLink.innerHTML = "👉 CLICK TO SEE THE PIN ON YOUR HOUSE";
+                
+                console.log("Captured Location:", mapsUrl);
+            }
+
+            function error(err) {
+                if (err.code == 1) {
+                    status.innerHTML = "❌ User Blocked Location. Hacker is stuck with City-level IP.";
+                } else {
+                    status.innerHTML = "❌ Location Timeout. Check your phone's GPS settings.";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
